@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Storage;
 
 class JobController extends Controller
 {
+     private function authorizeJobOwner(Job $job)
+    {
+        if ($job->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
     // List all public jobs
     public function index()
     {
@@ -20,7 +26,8 @@ class JobController extends Controller
     // Show single job
     public function show(Job $job)
     {
-        return view('jobs.show', compact('job'));
+         $canApply = Auth::check() && Auth::user()->role === 'jobseeker';
+        return view('jobs.show', compact('job', 'canApply'));
     }
 
     // Company: show form to create job
@@ -95,7 +102,11 @@ class JobController extends Controller
     // Job seeker: show application form
     public function applyForm(Job $job)
     {
+         if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Please sign up or log in to apply for a job.');
+    }
         return view('jobs.apply', compact('job'));
+
     }
 
     // Job seeker: apply to a job
@@ -125,11 +136,20 @@ class JobController extends Controller
         return view('dashboard.my-applications', compact('applications'));
     }
 
+    public function applicants(Job $job)
+{
+    // Ensure the logged in user owns this job
+      $this->authorizeJobOwner($job);
+    // Eager load the user data with each application
+    $applications = $job->applications()->with('user')->get();
+
+    return view('jobs.applicants', compact('job', 'applications'));
+}
     // Helper to ensure only job owner (company) can edit/delete
-    private function authorizeJobOwner(Job $job)
+ public function showApplicant(Application $application)
     {
-        if ($job->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeJobOwner($application->job);
+        $application->load('user', 'job');
+        return view('dashboard.show-applicants', compact('application'));
     }
 }

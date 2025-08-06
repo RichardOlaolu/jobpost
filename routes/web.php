@@ -27,6 +27,8 @@ Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 // Company routes
 Route::middleware(['auth', 'company'])->group(function () {
     Route::get('/jobs/create', [JobController::class, 'create'])->name('jobs.create');
+    Route::get('/my-jobs/{job}/applicants', [JobController::class, 'applicants'])->name('jobs.applicants');
+    Route::get('/applications/{application}', [JobController::class, 'showApplicant'])->name('applications.show');
     Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
     Route::get('/my-jobs', [JobController::class, 'myJobs'])->name('my.jobs');
     Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
