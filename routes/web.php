@@ -19,21 +19,22 @@ Route::middleware('auth')->group(function () {
 });
 
 // Public job routes
-Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/create', [JobController::class, 'create'])->middleware('auth')->name('jobs.create');
-Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
-
+Route::resource('jobs', JobController::class)->only(['index', 'show']);
 
 // Company routes
 Route::middleware(['auth', 'company'])->group(function () {
-    Route::get('/jobs/create', [JobController::class, 'create'])->name('jobs.create');
-    Route::get('/my-jobs/{job}/applicants', [JobController::class, 'applicants'])->name('jobs.applicants');
-    Route::get('/applications/{application}', [JobController::class, 'showApplicant'])->name('applications.show');
-    Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
+    Route::resource('jobs', JobController::class)->except(['index', 'show'])
+        ->names([
+            'create' => 'jobs.create',
+            'store' => 'jobs.store',
+            'edit' => 'jobs.edit',
+            'update' => 'jobs.update',
+            'destroy' => 'jobs.destroy'
+        ]);
+
     Route::get('/my-jobs', [JobController::class, 'myJobs'])->name('my.jobs');
-    Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
-    Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
-    Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
+    Route::get('/jobs/{job}/applicants', [JobController::class, 'applicants'])->name('jobs.applicants');
+    Route::get('/applications/{application}', [JobController::class, 'showApplicant'])->name('applications.show');
 });
 
 // Job seeker routes
